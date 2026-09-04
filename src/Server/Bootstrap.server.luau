@@ -13,7 +13,8 @@ local definitions = {
 	CCTVMonitor = "RemoteEvent", BookingDesk = "RemoteEvent",
 	StoreTransaction = "RemoteEvent", ToggleMonsterForm = "RemoteEvent",
 	VictimStateChanged = "RemoteEvent", VictimTaskRequest = "RemoteEvent",
-	MonsterTaskChanged = "RemoteEvent", SubmitMonsterGuess = "RemoteFunction",
+	MonsterTaskChanged = "RemoteEvent", MonsterDialogueChoice = "RemoteEvent",
+	SubmitMonsterGuess = "RemoteFunction",
 	GetMyRole = "RemoteFunction", GetRoundSnapshot = "RemoteFunction",
 }
 
@@ -23,4 +24,13 @@ for name, className in pairs(definitions) do
 		remote.Name = name
 		remote.Parent = remotes
 	end
+end
+
+local evidenceFolder = ReplicatedStorage:FindFirstChild("Evidence") or Instance.new("Folder")
+evidenceFolder.Name = "Evidence"
+evidenceFolder.Parent = ReplicatedStorage
+for _, monsterId in { "NightMoth", "HollowMimic", "AntlerStalker", "ClockworkWarden", "BogWalker", "NeonWisp" } do
+	local candidate = evidenceFolder:FindFirstChild(monsterId) or Instance.new("Folder")
+	candidate.Name = monsterId
+	candidate.Parent = evidenceFolder
 end

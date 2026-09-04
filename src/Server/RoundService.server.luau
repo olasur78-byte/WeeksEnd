@@ -18,7 +18,9 @@ local function taggedOrNamed(tag, names)
 	if #found > 0 then return found end
 	local results = {}
 	for _, descendant in workspace:GetDescendants() do
-		if table.find(names, descendant.Name) and (descendant:IsA("Model") or descendant:IsA("BasePart")) then
+		local lowerName = descendant.Name:lower()
+		local nameMatch = table.find(names, descendant.Name) or (tag == "KidnapHouse" and lowerName:find("house", 1, true))
+		if nameMatch and (descendant:IsA("Model") or descendant:IsA("BasePart")) then
 			table.insert(results, descendant)
 		end
 	end

@@ -9,6 +9,8 @@ local cellStateRemote = Remotes:WaitForChild("CellStateChanged")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local previousCameraType = nil
+local previousCameraSubject = nil
 
 -- Create main ScreenGui
 local screenGui = Instance.new("ScreenGui")
@@ -137,6 +139,9 @@ cctvCorner2.Parent = cctvClose
 
 cctvClose.MouseButton1Click:Connect(function()
 	cctvGui.Visible = false
+	local camera = workspace.CurrentCamera
+	if previousCameraType then camera.CameraType = previousCameraType end
+	if previousCameraSubject then camera.CameraSubject = previousCameraSubject end
 end)
 
 local cctvList = Instance.new("ScrollingFrame")
@@ -160,7 +165,8 @@ caseFileUpdatedRemote.OnClientEvent:Connect(function(data)
 			evidenceCount = evidenceCount + 1
 			evidenceLabel.Text = "Evidence: " .. evidenceCount
 		end
-		showNotification("[EVIDENCE] " .. data.Title, data.Description .. " (Reliability: " .. (data.Reliability or "Unknown") .. ")")
+		local suspects = data.Suspects and (" Possible: " .. table.concat(data.Suspects, ", ")) or ""
+		showNotification("[EVIDENCE] " .. data.Title, data.Description .. " (Reliability: " .. (data.Reliability or "Unknown") .. ")." .. suspects)
 	elseif data.Type == "AlreadyCollected" then
 		showNotification(data.Title, data.Description)
 	elseif data.Type == "Info" then
@@ -171,7 +177,7 @@ caseFileUpdatedRemote.OnClientEvent:Connect(function(data)
 end)
 
 -- Handle CCTV Monitor events
-cctvMonitorRemote.OnClientEvent:Connect(function(cameras)
+cctvMonitorRemote.OnClientEvent:Connect(function(cameras, online)
 	-- Clear previous list
 	for _, child in ipairs(cctvList:GetChildren()) do
 		if child:IsA("Frame") then
@@ -179,12 +185,20 @@ cctvMonitorRemote.OnClientEvent:Connect(function(cameras)
 		end
 	end
 
+	if online == false then
+		cctvTitle.Text = "CCTV Monitoring System — OFFLINE"
+		cctvGui.Visible = true
+		showNotification("CCTV System", "Camera feeds are disabled during the night.")
+		return
+	end
+	cctvTitle.Text = "CCTV Monitoring System"
 	-- Populate camera list
 	for _, cam in ipairs(cameras) do
-		local camFrame = Instance.new("Frame")
+		local camFrame = Instance.new("TextButton")
 		camFrame.Size = UDim2.new(1, -10, 0, 60)
 		camFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
 		camFrame.BackgroundTransparency = 0.2
+		camFrame.Text = ""
 		camFrame.Parent = cctvList
 
 		local camCorner = Instance.new("UICorner")
@@ -207,6 +221,15 @@ cctvMonitorRemote.OnClientEvent:Connect(function(cameras)
 		statusDot.Position = UDim2.new(1, -20, 0.5, -5)
 		statusDot.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 		statusDot.Parent = camFrame
+
+		camFrame.Activated:Connect(function()
+			if not cam.CFrame then return end
+			local camera = workspace.CurrentCamera
+			previousCameraType = previousCameraType or camera.CameraType
+			previousCameraSubject = previousCameraSubject or camera.CameraSubject
+			camera.CameraType = Enum.CameraType.Scriptable
+			camera.CFrame = cam.CFrame
+		end)
 
 		local dotCorner = Instance.new("UICorner")
 		dotCorner.CornerRadius = UDim.new(1, 0)

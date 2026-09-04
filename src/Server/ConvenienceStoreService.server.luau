@@ -58,7 +58,8 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
 	local parent = prompt.Parent
 	if not parent or not parent:IsA("BasePart") then return end
 
-	local store = game.Workspace.Map:FindFirstChild("ConvenienceStore")
+	local map = game.Workspace:FindFirstChild("Map")
+	local store = map and map:FindFirstChild("ConvenienceStore")
 	if not store then return end
 
 	-- Check if the prompt is inside the convenience store

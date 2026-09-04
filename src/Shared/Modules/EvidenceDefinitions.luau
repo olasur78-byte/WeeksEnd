@@ -1,4 +1,12 @@
 local EvidenceDefinitions = {
+	CandidateSets = {
+		NightMoth = { Visual = { "NightMoth", "NeonWisp" }, Witness = { "NightMoth", "HollowMimic" }, Physical = { "NightMoth", "BogWalker" } },
+		HollowMimic = { Visual = { "HollowMimic", "NeonWisp" }, Witness = { "HollowMimic", "ClockworkWarden" }, Physical = { "HollowMimic", "AntlerStalker" } },
+		AntlerStalker = { Visual = { "AntlerStalker", "ClockworkWarden" }, Witness = { "AntlerStalker", "BogWalker" }, Physical = { "AntlerStalker", "HollowMimic" } },
+		ClockworkWarden = { Visual = { "ClockworkWarden", "NeonWisp" }, Witness = { "ClockworkWarden", "HollowMimic" }, Physical = { "ClockworkWarden", "BogWalker" } },
+		BogWalker = { Visual = { "BogWalker", "AntlerStalker" }, Witness = { "BogWalker", "NightMoth" }, Physical = { "BogWalker", "ClockworkWarden" } },
+		NeonWisp = { Visual = { "NeonWisp", "NightMoth" }, Witness = { "NeonWisp", "HollowMimic" }, Physical = { "NeonWisp", "ClockworkWarden" } },
+	},
 	Monsters = {
 		NightMoth = {
 			Visual = "Fine grey wing-dust caught on a window frame.",
@@ -85,11 +93,11 @@ function EvidenceDefinitions.ForMonster(monsterId, evidenceKind)
 	local description = profile[evidenceKind]
 	if not description then return nil end
 	return {
-		Id = string.lower(monsterId) .. "_" .. string.lower(evidenceKind),
+		Id = string.lower(evidenceKind) .. "_clue",
 		Title = evidenceKind .. " evidence",
 		Description = description,
 		Reliability = evidenceKind == "Physical" and "High" or "Medium",
-		Suspects = { monsterId },
+		Suspects = EvidenceDefinitions.CandidateSets[monsterId][evidenceKind],
 	}
 end
 

@@ -34,7 +34,8 @@ local function isNearPart(player, part, maxDist)
 end
 
 local function getCellBars(cellNumber)
-	local police = game.Workspace.Map:FindFirstChild("PoliceStation")
+	local map = game.Workspace:FindFirstChild("Map")
+	local police = map and map:FindFirstChild("PoliceStation")
 	if not police then return {} end
 
 	local bars = {}
@@ -64,7 +65,8 @@ end
 
 local function sendEvidence(player, evidence)
 	monitoredEvidence[player.UserId] = monitoredEvidence[player.UserId] or {}
-	if monitoredEvidence[player.UserId][evidence.Id] then
+	local evidenceId = tostring(RoundState.GetSnapshot().Id) .. "_" .. evidence.Id
+	if monitoredEvidence[player.UserId][evidenceId] then
 		caseFileUpdatedRemote:FireClient(player, {
 			Type = "AlreadyCollected",
 			Title = "Case File",
@@ -72,29 +74,33 @@ local function sendEvidence(player, evidence)
 		})
 		return
 	end
-	monitoredEvidence[player.UserId][evidence.Id] = true
+	monitoredEvidence[player.UserId][evidenceId] = true
 	caseFileUpdatedRemote:FireClient(player, {
 			Type = "Evidence",
-			Id = evidence.Id,
+		Id = evidenceId,
 			Title = evidence.Title,
 			Description = evidence.Description,
-			Reliability = evidence.Reliability,
+		Reliability = evidence.Reliability,
+		Suspects = evidence.Suspects,
 	})
 end
 
 local function getAllCCTVCameras()
 	local cameras = {}
+	local map = game.Workspace:FindFirstChild("Map")
+	if not map then return cameras end
 	-- Find all CameraBody parts with CCTV EvidenceType attribute
-	for _, descendant in ipairs(game.Workspace.Map:GetDescendants()) do
+	for _, descendant in ipairs(map:GetDescendants()) do
 		if descendant:IsA("BasePart") and descendant:GetAttribute("EvidenceType") == "CCTV" then
 			local cameraId = descendant:GetAttribute("CameraId")
 			local location = descendant:GetAttribute("Location")
 			if cameraId and location then
-				table.insert(cameras, {
-					CameraId = cameraId,
-					Location = location,
-					Position = descendant.Position,
-				})
+					table.insert(cameras, {
+						CameraId = cameraId,
+						Location = location,
+						Position = descendant.Position,
+						CFrame = descendant.CFrame,
+					})
 			end
 		end
 	end
@@ -106,7 +112,8 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
 	local parent = prompt.Parent
 	if not parent or not parent:IsA("BasePart") then return end
 
-	local police = game.Workspace.Map:FindFirstChild("PoliceStation")
+	local map = game.Workspace:FindFirstChild("Map")
+	local police = map and map:FindFirstChild("PoliceStation")
 	if not police then return end
 
 	-- Check if the prompt is inside the police station
@@ -240,16 +247,25 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
 			return
 		end
 
+		if not RoundState.IsDay() then
+			caseFileUpdatedRemote:FireClient(player, {
+				Type = "Info", Title = "CCTV offline",
+				Description = "Camera feeds are unavailable at night.",
+			})
+			cctvMonitorRemote:FireClient(player, {}, false)
+			return
+		end
+
 		-- Send all camera data to the client
 		local cameras = getAllCCTVCameras()
-		cctvMonitorRemote:FireClient(player, cameras)
+		cctvMonitorRemote:FireClient(player, cameras, true)
 
-		-- Also provide evidence from each camera
-		for _, cam in ipairs(cameras) do
-			local clue = EvidenceDefinitions.CCTV[cam.CameraId]
-			if clue then
-				sendEvidence(player, clue)
-			end
+		-- One camera contains a round-specific visual clue. Other feeds remain useful
+		-- for observing live movement without flooding the case file.
+		if cameras[1] then
+			local snapshot = RoundState.GetSnapshot()
+			local clue = EvidenceDefinitions.ForMonster(RoundState.GetMonster(snapshot.Kidnapper), "Visual")
+			if clue then sendEvidence(player, clue) end
 		end
 		return
 	end

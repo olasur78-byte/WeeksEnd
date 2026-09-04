@@ -29,3 +29,13 @@ oryginalnym miejscu.
 odzyskanych skryptów. Pliki w `src` są na razie wierną kopią kodu źródłowego;
 refaktoryzację należy prowadzić już w `src`, pozostawiając `raw-scripts` jako
 punkt odniesienia.
+
+## Systemy rozgrywki
+
+Kod zawiera obecnie serwerową pętlę rundy, losowanie wspólnego domu porywacza i
+ofiary, cykl dnia i nocy, potrzeby oraz zadania ucieczki ofiary, zadania kamuflażu
+potwora, interaktywne odpowiedzi podczas przesłuchania, NPC z losowym wyglądem i
+animacją chodzenia, dowody zawężające sześć typów potworów, dzienny monitoring
+CCTV oraz warunek zwycięstwa wymagający uratowania ofiary i rozpoznania potwora.
+
+Połączenie mechanik z geometrią mapy opisuje `docs/GameplayTags.md`.

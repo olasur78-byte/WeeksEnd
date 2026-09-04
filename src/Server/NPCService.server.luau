@@ -3,6 +3,7 @@ local PathfindingService = game:GetService("PathfindingService")
 local NPCProfiles = require(game.ReplicatedStorage.Modules.NPCProfiles)
 
 local NPC_COUNT = 25
+local WALK_ANIMATION_ID = "rbxassetid://507777826"
 local PATH_PARAMETERS = {
 	AgentRadius = 2,
 	AgentHeight = 5,
@@ -83,9 +84,21 @@ local function spawnNPC(spawnPosition, npcName)
 	end
 
 	model.Name = npcName or ("NPC_" .. math.random(1000, 9999))
+	model:SetAttribute("IsCivilian", true)
+	model:SetAttribute("WitnessStatement", NPCProfiles.randomFrom(NPCProfiles.WitnessResponses))
 	model:PivotTo(CFrame.new(spawnPosition))
 	applyRandomAppearance(model)
 	model.Parent = npcFolder
+	local interactionPart = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChildWhichIsA("BasePart")
+	if interactionPart then
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.Name = "CivilianInteraction"
+		prompt.ActionText = "Interact"
+		prompt.ObjectText = model.Name
+		prompt.HoldDuration = 1
+		prompt.MaxActivationDistance = 10
+		prompt.Parent = interactionPart
+	end
 
 	local humanoid = model:FindFirstChildOfClass("Humanoid")
 	if not humanoid then
@@ -96,6 +109,22 @@ local function spawnNPC(spawnPosition, npcName)
 
 	humanoid.WalkSpeed = 8 + math.random(0, 4)
 	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	humanoid.DisplayName = model.Name
+
+	local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator", humanoid)
+	local walkAnimation = Instance.new("Animation")
+	walkAnimation.AnimationId = WALK_ANIMATION_ID
+	local walkTrack = animator:LoadAnimation(walkAnimation)
+	walkTrack.Looped = true
+	walkTrack.Priority = Enum.AnimationPriority.Movement
+	humanoid.Running:Connect(function(speed)
+		if speed > 0.5 then
+			if not walkTrack.IsPlaying then walkTrack:Play(0.2) end
+			walkTrack:AdjustSpeed(math.clamp(speed / 10, 0.6, 1.4))
+		elseif walkTrack.IsPlaying then
+			walkTrack:Stop(0.2)
+		end
+	end)
 
 	activeNPCs[model] = true
 

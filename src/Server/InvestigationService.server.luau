@@ -43,6 +43,13 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
 	if RoundState.GetRole(player) ~= "Detective" then
 		return
 	end
+	if not RoundState.IsDay() then
+		caseFileUpdatedRemote:FireClient(player, {
+			Type = "Info", Title = "Camera offline",
+			Description = "CCTV is disabled during the night.",
+		})
+		return
+	end
 
 	-- Extra server check for distance.
 	if not isNearCamera(player, cameraBody, prompt) then
@@ -50,7 +57,9 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
 	end
 
 	local cameraId = cameraBody:GetAttribute("CameraId")
-	local clue = EvidenceDefinitions.CCTV[cameraId]
+	local snapshot = RoundState.GetSnapshot()
+	local clue = EvidenceDefinitions.ForMonster(RoundState.GetMonster(snapshot.Kidnapper), "Visual")
+		or EvidenceDefinitions.CCTV[cameraId]
 
 	if not clue then
 		warn("No CCTV clue exists for CameraId: " .. tostring(cameraId))
@@ -59,7 +68,8 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
 
 	collectedEvidence[player.UserId] = collectedEvidence[player.UserId] or {}
 
-	if collectedEvidence[player.UserId][clue.Id] then
+	local evidenceId = tostring(RoundState.GetSnapshot().Id) .. "_" .. clue.Id
+	if collectedEvidence[player.UserId][evidenceId] then
 		caseFileUpdatedRemote:FireClient(player, {
 			Type = "AlreadyCollected",
 			Title = "Case File",
@@ -68,14 +78,15 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
 		return
 	end
 
-	collectedEvidence[player.UserId][clue.Id] = true
+	collectedEvidence[player.UserId][evidenceId] = true
 
 	caseFileUpdatedRemote:FireClient(player, {
 		Type = "Evidence",
-		Id = clue.Id,
+		Id = evidenceId,
 		Title = clue.Title,
 		Description = clue.Description,
 		Reliability = clue.Reliability,
+		Suspects = clue.Suspects,
 	})
 end)
 

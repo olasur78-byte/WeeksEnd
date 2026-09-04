@@ -32,6 +32,18 @@ module.Hairs = {
 	62234473,  -- Lavender Hair
 }
 
+-- Classic clothing assets. Replace or extend these IDs with assets owned by the
+-- experience if catalog permissions prevent loading a particular item.
+module.Shirts = { 855766176, 855776103, 144076358, 398633584, 398633812 }
+module.Pants = { 855777285, 855780781, 144076760, 398634295, 398635081 }
+
+module.WitnessResponses = {
+	"I noticed something unusual, but I only saw the person for a moment.",
+	"They were trying very hard to behave like everyone else.",
+	"I remember a strange sound and the direction they walked afterward.",
+	"They visited one of the local businesses shortly before nightfall.",
+}
+
 -- Skin tone colors (RGB)
 module.SkinTones = {
 	Color3.fromRGB(255, 224, 189),
@@ -85,8 +97,10 @@ end
 
 function module.createRandomDescription()
 	local hd = Instance.new("HumanoidDescription")
-	hd.Face = tostring(module.randomFrom(module.Faces))
-	hd.HairAccessory = "rbxassetid://" .. tostring(module.randomFrom(module.Hairs))
+	hd.Face = module.randomFrom(module.Faces)
+	hd.HairAccessory = tostring(module.randomFrom(module.Hairs))
+	hd.Shirt = module.randomFrom(module.Shirts)
+	hd.Pants = module.randomFrom(module.Pants)
 	return hd
 end
 
