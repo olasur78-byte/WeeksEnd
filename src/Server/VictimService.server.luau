@@ -53,6 +53,11 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
 		return
 	end
 	local taskId = prompt:GetAttribute("VictimTask") or prompt.Parent:GetAttribute("VictimTask")
+	if prompt:GetAttribute("VictimTaskSequence") or prompt.Parent:GetAttribute("VictimTaskSequence") then
+		local sequenceEnd = prompt:GetAttribute("VictimTaskSequenceEnd") or prompt.Parent:GetAttribute("VictimTaskSequenceEnd") or #sequence
+		if state.Stage > sequenceEnd then return end
+		taskId = sequence[state.Stage]
+	end
 	if not state or taskId ~= sequence[state.Stage] then return end
 	local definition = Config.VictimTasks[taskId]
 	if not definition then return end

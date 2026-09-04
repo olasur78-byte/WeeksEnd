@@ -1,4 +1,6 @@
 *.generated.rbxl
 *.generated.rbxlx
 *.generated.json
+*.generated.rbxl.lock
+*.tagged.rbxl.lock
 rbxlx-to-rojo.log

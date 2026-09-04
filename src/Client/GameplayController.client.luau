@@ -109,6 +109,15 @@ Remotes.MonsterTaskChanged.OnClientEvent:Connect(function(state)
 end)
 
 local function pointInside(part, point)
+	if not part:IsA("BasePart") then
+		local floor = part:FindFirstChild("BF", true)
+		if not floor or not floor:IsA("BasePart") then return false end
+		local pivot, size = part:GetBoundingBox()
+		local localPoint = pivot:PointToObjectSpace(point)
+		return math.abs(localPoint.X) <= size.X * 0.5
+			and math.abs(localPoint.Z) <= size.Z * 0.5
+			and point.Y <= floor.Position.Y + 12
+	end
 	local localPoint = part.CFrame:PointToObjectSpace(point)
 	local half = part.Size * 0.5
 	return math.abs(localPoint.X) <= half.X and math.abs(localPoint.Z) <= half.Z
@@ -119,7 +128,7 @@ RunService:BindToRenderStep("PreventBasementView", Enum.RenderPriority.Camera.Va
 	local camera = workspace.CurrentCamera
 	if not camera or camera.CFrame.LookVector.Y >= -0.15 then return end
 	for _, zone in CollectionService:GetTagged("BasementZone") do
-		if zone:IsA("BasePart") and pointInside(zone, camera.CFrame.Position) then
+		if pointInside(zone, camera.CFrame.Position) then
 			local look = camera.CFrame.LookVector
 			local flattened = Vector3.new(look.X, -0.15, look.Z).Unit
 			camera.CFrame = CFrame.lookAt(camera.CFrame.Position, camera.CFrame.Position + flattened)

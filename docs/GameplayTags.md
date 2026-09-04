@@ -3,14 +3,17 @@
 Mechaniki nie wymagają konkretnych modeli mapy, ale części interakcyjne muszą
 otrzymać poniższe tagi lub atrybuty w Roblox Studio.
 
+Plik `Weeks End.tagged.rbxl` ma już oznaczone wszystkie pasujące obiekty wykryte
+w obecnej mapie. Poniższa tabela jest również kontraktem dla nowych obiektów.
+
 ## Tagi CollectionService
 
 | Tag | Obiekt | Znaczenie |
 | --- | --- | --- |
 | `KidnapHouse` | Model domu | Dom losowany wspólnie dla porywacza i ofiary |
 | `RoundSpawn` | BasePart | Publiczny spawn detektywów |
-| `BasementZone` | Niewidoczny BasePart | Strefa zakazana policji i chroniona przed podglądaniem kamerą |
-| `PoliceStationZone` | Niewidoczny BasePart | Strefa zakazana porywaczowi i cywilom |
+| `BasementZone` | Model domu lub BasePart strefy | Strefa zakazana policji i chroniona przed podglądaniem kamerą |
+| `PoliceStationZone` | Folder/model komisariatu albo BasePart | Strefa zakazana porywaczowi i cywilom |
 
 Model domu powinien zawierać `KidnapSpawn` albo `BasementSpawn`. Jeśli nie ma
 tagów domów, system próbuje znaleźć modele zawierające `House` w nazwie.

@@ -7,12 +7,30 @@ local RoundState = require(script.Parent.RoundState)
 local safePositions = {}
 local safeNPCPositions = {}
 
-local function inside(part, position)
-	local localPosition = part.CFrame:PointToObjectSpace(position)
-	local half = part.Size * 0.5
-	return math.abs(localPosition.X) <= half.X
-		and math.abs(localPosition.Y) <= half.Y
-		and math.abs(localPosition.Z) <= half.Z
+local function inside(zone, position)
+	if zone:IsA("BasePart") then
+		local localPosition = zone.CFrame:PointToObjectSpace(position)
+		local half = zone.Size * 0.5
+		return math.abs(localPosition.X) <= half.X and math.abs(localPosition.Y) <= half.Y and math.abs(localPosition.Z) <= half.Z
+	end
+	local parts = {}
+	for _, item in zone:GetDescendants() do if item:IsA("BasePart") then table.insert(parts, item) end end
+	if #parts == 0 then return false end
+	local minimum, maximum
+	for _, part in parts do
+		local half = part.Size * 0.5
+		local low, high = part.Position - half, part.Position + half
+		minimum = minimum and Vector3.new(math.min(minimum.X, low.X), math.min(minimum.Y, low.Y), math.min(minimum.Z, low.Z)) or low
+		maximum = maximum and Vector3.new(math.max(maximum.X, high.X), math.max(maximum.Y, high.Y), math.max(maximum.Z, high.Z)) or high
+	end
+	if zone:HasTag(Config.Zones.BasementTag) then
+		local floor = zone:FindFirstChild("BF", true)
+		local ceilingY = floor and floor.Position.Y + 12 or minimum.Y + (maximum.Y - minimum.Y) * 0.45
+		maximum = Vector3.new(maximum.X, ceilingY, maximum.Z)
+	end
+	return position.X >= minimum.X and position.X <= maximum.X
+		and position.Y >= minimum.Y and position.Y <= maximum.Y
+		and position.Z >= minimum.Z and position.Z <= maximum.Z
 end
 
 local function zones(tag, fallbackName)
@@ -26,7 +44,7 @@ local function zones(tag, fallbackName)
 end
 
 local function inAny(parts, position)
-	for _, part in parts do if part:IsA("BasePart") and inside(part, position) then return true end end
+	for _, part in parts do if inside(part, position) then return true end end
 	return false
 end
 

@@ -16,7 +16,8 @@ project does not overwrite.
 
 ## Working with Roblox Studio
 
-1. Open `Weeks End.rbxl` in Roblox Studio.
+1. Open `Weeks End.tagged.rbxl` in Roblox Studio. `Weeks End.rbxl` remains the
+   unchanged backup from before map tagging.
 2. Run `rojo serve default.project.json` from the project directory.
 3. Connect the Rojo plugin in Studio to the running server.
 
@@ -42,3 +43,7 @@ victim and identifying the monster.
 
 The tags used to connect these systems to map geometry are documented in
 `docs/GameplayTags.md`.
+
+The tagged place already contains tags for five houses and basements, the
+police station, eleven spawn points, nine cameras, ten products, and the house
+door prompts used by victim tasks.

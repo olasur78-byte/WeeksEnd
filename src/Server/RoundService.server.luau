@@ -40,7 +40,10 @@ end
 
 local function houseSpawn(house)
 	if not house then return nil end
-	return house:FindFirstChild("KidnapSpawn", true) or house:FindFirstChild("BasementSpawn", true) or rootOf(house)
+	return house:FindFirstChild("KidnapSpawn", true)
+		or house:FindFirstChild("BasementSpawn", true)
+		or house:FindFirstChild("BF", true)
+		or rootOf(house)
 end
 
 local function publicSpawn()
