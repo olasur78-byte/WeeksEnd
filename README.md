@@ -1,41 +1,44 @@
 # Weeks End
 
-Kod gry został wyciągnięty z `Weeks End.rbxl` do plików Luau i podłączony przez
-[Rojo](https://rojo.space/). Oryginalny plik miejsca pozostaje źródłem mapy,
-interfejsów, modeli i pozostałych instancji, których ten projekt nie nadpisuje.
+The game's code was extracted from `Weeks End.rbxl` into Luau source files and
+connected through [Rojo](https://rojo.space/). The original place file remains
+the source of the map, user interfaces, models, and other instances that this
+project does not overwrite.
 
-## Struktura
+## Project structure
 
-- `src/Server` — skrypty i moduły z `ServerScriptService`
-- `src/Client` — skrypty z `StarterPlayerScripts`
-- `src/Shared` — moduły z `ReplicatedStorage`
-- `src/ReplicatedStorage` — skrypty przechowywane bezpośrednio w `ReplicatedStorage`
-- `src/ServerStorage` — serwerowe moduły modeli potworów
-- `raw-scripts` — niezmieniony eksport referencyjny wraz z manifestem
+- `src/Server` — scripts and modules from `ServerScriptService`
+- `src/Client` — scripts from `StarterPlayerScripts`
+- `src/Shared` — modules from `ReplicatedStorage`
+- `src/ReplicatedStorage` — scripts stored directly in `ReplicatedStorage`
+- `src/ServerStorage` — server-side modules for monster models
+- `raw-scripts` — an unchanged reference export with its manifest
 
-## Praca w Roblox Studio
+## Working with Roblox Studio
 
-1. Otwórz `Weeks End.rbxl` w Roblox Studio.
-2. W katalogu projektu uruchom `rojo serve default.project.json`.
-3. Połącz plugin Rojo w Studio z uruchomionym serwerem.
+1. Open `Weeks End.rbxl` in Roblox Studio.
+2. Run `rojo serve default.project.json` from the project directory.
+3. Connect the Rojo plugin in Studio to the running server.
 
-Konfiguracja ma włączone zachowywanie nieznanych instancji. Synchronizacja kodu
-nie powinna usuwać mapy, modeli, RemoteEventów ani elementów UI istniejących w
-oryginalnym miejscu.
+The project configuration preserves unknown instances. Synchronizing the code
+should not remove the map, models, RemoteEvents, or UI elements stored in the
+original place file.
 
-## Kontrola eksportu
+## Export verification
 
-`raw-scripts/manifest.json` zapisuje pierwotną ścieżkę i klasę każdego z 31
-odzyskanych skryptów. Pliki w `src` są na razie wierną kopią kodu źródłowego;
-refaktoryzację należy prowadzić już w `src`, pozostawiając `raw-scripts` jako
-punkt odniesienia.
+`raw-scripts/manifest.json` records the original path and class of each of the
+31 recovered scripts. The files in `src` initially mirror the source code;
+future refactoring should happen in `src`, while `raw-scripts` remains an
+unchanged reference copy.
 
-## Systemy rozgrywki
+## Gameplay systems
 
-Kod zawiera obecnie serwerową pętlę rundy, losowanie wspólnego domu porywacza i
-ofiary, cykl dnia i nocy, potrzeby oraz zadania ucieczki ofiary, zadania kamuflażu
-potwora, interaktywne odpowiedzi podczas przesłuchania, NPC z losowym wyglądem i
-animacją chodzenia, dowody zawężające sześć typów potworów, dzienny monitoring
-CCTV oraz warunek zwycięstwa wymagający uratowania ofiary i rozpoznania potwora.
+The game currently includes a server-side round loop, shared-home selection for
+the kidnapper and victim, a day-and-night cycle, victim needs and escape tasks,
+monster cover tasks, interactive interrogation responses, NPCs with randomized
+appearances and walking animations, evidence that narrows down six monster
+types, daily CCTV monitoring, and a victory condition that requires rescuing the
+victim and identifying the monster.
 
-Połączenie mechanik z geometrią mapy opisuje `docs/GameplayTags.md`.
+The tags used to connect these systems to map geometry are documented in
+`docs/GameplayTags.md`.
