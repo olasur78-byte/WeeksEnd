@@ -20,17 +20,16 @@ module.Faces = {
 	106193607,  -- Stoic
 }
 
--- Free Roblox catalog hair accessory asset IDs
+-- Verified HairAccessory assets from the Roblox catalog. The previous list
+-- contained place/image IDs, which is why most masculine NPCs were bald.
 module.Hairs = {
-	62247891,  -- Beautiful Hair
-	63690008,  -- Pastel Hair
-	16630171,  -- Brown Charmer Hair
-	28583200,  -- The Classic
-	62234125,  -- Spike Hair
-	62724852,  -- Cinnamon Hair
-	45201227,  -- Red Fabulous Hair
-	62234473,  -- Lavender Hair
+	2956239660, 63690008, 451221329, 1103003368, 16630147,
+	376526888, 376524487, 376548738, 13745548, 727320877,
+	323476364, 17877340,
 }
+
+module.FeminineHairs = { 2956239660, 16630147, 376526888, 13745548, 727320877, 323476364, 17877340 }
+module.MasculineHairs = { 63690008, 451221329, 1103003368, 376524487, 376548738, 16630147 }
 
 -- Classic clothing assets. Replace or extend these IDs with assets owned by the
 -- experience if catalog permissions prevent loading a particular item.
@@ -82,15 +81,6 @@ module.PantsColors = {
 	Color3.fromRGB(70, 50, 40),
 }
 
--- Random civilian names
-module.Names = {
-	"Alice", "Bob", "Carol", "David", "Emma", "Frank", "Grace", "Henry",
-	"Iris", "Jack", "Karen", "Leo", "Mia", "Noah", "Olivia", "Paul",
-	"Quinn", "Rachel", "Sam", "Tina", "Victor", "Wendy", "Xavier", "Yara",
-	"Zack", "Amber", "Brian", "Chloe", "Derek", "Elena", "Felix", "Gina",
-	"Hugo", "Ivy", "Jacob", "Kira", "Liam", "Maya", "Nina", "Oscar",
-}
-
 function module.randomFrom(tbl)
 	return tbl[math.random(1, #tbl)]
 end
@@ -102,6 +92,48 @@ function module.createRandomDescription()
 	hd.Shirt = module.randomFrom(module.Shirts)
 	hd.Pants = module.randomFrom(module.Pants)
 	return hd
+end
+
+function module.createReliableNPCDescription()
+	local hd = Instance.new("HumanoidDescription")
+	-- Keep the generated rig independent from catalog delivery. Several of the
+	-- old free assets can fail moderation/loading and leave an entirely black
+	-- avatar. BodyColors are applied after the rig is created.
+	hd.HeadColor = module.randomFrom(module.SkinTones)
+	hd.LeftArmColor = hd.HeadColor
+	hd.RightArmColor = hd.HeadColor
+	hd.TorsoColor = module.randomFrom(module.ShirtColors)
+	local pantsColor = module.randomFrom(module.PantsColors)
+	hd.LeftLegColor = pantsColor
+	hd.RightLegColor = pantsColor
+	return hd
+end
+
+function module.createCivilianProfile()
+	local presentation = if math.random() < 0.5 then "Feminine" else "Masculine"
+	local hd = module.createReliableNPCDescription()
+
+	-- Hair and classic clothing add variety, while the body colors above remain
+	-- a readable fallback if an individual catalog texture is unavailable.
+	local hairPool = if presentation == "Feminine" then module.FeminineHairs else module.MasculineHairs
+	hd.HairAccessory = tostring(module.randomFrom(hairPool))
+	hd.Face = module.randomFrom(module.Faces)
+	hd.Shirt = module.randomFrom(module.Shirts)
+	hd.Pants = module.randomFrom(module.Pants)
+
+	if presentation == "Feminine" then
+		hd.BodyTypeScale = math.random(25, 55) / 100
+		hd.ProportionScale = math.random(45, 80) / 100
+		hd.HeightScale = math.random(92, 103) / 100
+		hd.WidthScale = math.random(78, 94) / 100
+	else
+		hd.BodyTypeScale = math.random(0, 35) / 100
+		hd.ProportionScale = math.random(15, 55) / 100
+		hd.HeightScale = math.random(96, 108) / 100
+		hd.WidthScale = math.random(88, 105) / 100
+	end
+
+	return hd, presentation
 end
 
 return module

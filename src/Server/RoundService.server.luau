@@ -27,10 +27,12 @@ local function taggedOrNamed(tag, names)
 	return results
 end
 
-local function teleport(player, target)
+local function teleport(player, target, localOffset)
 	local character = player.Character or player.CharacterAdded:Wait()
 	local targetPart = target and rootOf(target)
-	if character and targetPart then character:PivotTo(targetPart.CFrame + Vector3.new(0, 3, 0)) end
+	if character and targetPart then
+		character:PivotTo(targetPart.CFrame * CFrame.new(localOffset or Vector3.new(0, 3, 0)))
+	end
 end
 
 local function chooseHouse()
@@ -46,9 +48,13 @@ local function houseSpawn(house)
 		or rootOf(house)
 end
 
-local function publicSpawn()
+local function shuffledPublicSpawns()
 	local spawns = taggedOrNamed("RoundSpawn", { "PoliceSpawn", "DetectiveSpawn", "SpawnLocation" })
-	return spawns[1]
+	for index = #spawns, 2, -1 do
+		local other = math.random(1, index)
+		spawns[index], spawns[other] = spawns[other], spawns[index]
+	end
+	return spawns
 end
 
 local function startRound()
@@ -62,10 +68,17 @@ local function startRound()
 	end
 
 	local captiveSpawn = houseSpawn(house)
-	teleport(assignment.Kidnapper, captiveSpawn)
-	teleport(assignment.Victim, captiveSpawn)
+	teleport(assignment.Kidnapper, captiveSpawn, Vector3.new(-3, 3, 0))
+	teleport(assignment.Victim, captiveSpawn, Vector3.new(3, 3, 0))
+	local publicSpawns = shuffledPublicSpawns()
+	local publicIndex = 0
 	for _, player in assignment.Players do
-		if player ~= assignment.Kidnapper and player ~= assignment.Victim then teleport(player, publicSpawn()) end
+		if player ~= assignment.Kidnapper and player ~= assignment.Victim then
+			publicIndex += 1
+			local spawn = publicSpawns[((publicIndex - 1) % math.max(#publicSpawns, 1)) + 1]
+			local row = math.floor((publicIndex - 1) / math.max(#publicSpawns, 1))
+			teleport(player, spawn, Vector3.new((row % 3 - 1) * 4, 3, math.floor(row / 3) * 4))
+		end
 	end
 
 	Remotes.RoundStateChanged:FireAllClients("RoundStarted", RoundState.GetSnapshot())

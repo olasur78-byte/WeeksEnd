@@ -14,6 +14,8 @@ w obecnej mapie. Poniższa tabela jest również kontraktem dla nowych obiektów
 | `RoundSpawn` | BasePart | Publiczny spawn detektywów |
 | `BasementZone` | Model domu lub BasePart strefy | Strefa zakazana policji i chroniona przed podglądaniem kamerą |
 | `PoliceStationZone` | Folder/model komisariatu albo BasePart | Strefa zakazana porywaczowi i cywilom |
+| `NPCWaypoint` | BasePart na chodniku | Opcjonalny, bezpieczny cel spacerów NPC |
+| `NPCStreet` | BasePart ulicy lub chodnika | Powierzchnia losowego spawnu i spacerów NPC; zalecany tag dla pewnego wykrywania |
 
 Model domu powinien zawierać `KidnapSpawn` albo `BasementSpawn`. Jeśli nie ma
 tagów domów, system próbuje znaleźć modele zawierające `House` w nazwie.

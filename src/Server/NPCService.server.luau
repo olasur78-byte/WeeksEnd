@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local PathfindingService = game:GetService("PathfindingService")
+local CollectionService = game:GetService("CollectionService")
 local NPCProfiles = require(game.ReplicatedStorage.Modules.NPCProfiles)
 
 local NPC_COUNT = 25
@@ -18,37 +19,98 @@ if not npcFolder then
 	npcFolder.Parent = workspace
 end
 
--- Waypoints: key locations NPCs walk between
-local WAYPOINTS = {
-	Vector3.new(0, 3, 5),
-	Vector3.new(29, 3, 50),
-	Vector3.new(-35, 3, 55),
-	Vector3.new(-75, 3, -55),
-	Vector3.new(-35, 3, -55),
-	Vector3.new(5, 3, -45),
-	Vector3.new(45, 3, -55),
-	Vector3.new(75, 3, -55),
-	Vector3.new(-15, 3, 20),
-	Vector3.new(15, 3, 20),
-	Vector3.new(0, 3, -25),
-	Vector3.new(-20, 3, 5),
-	Vector3.new(20, 3, 5),
-	Vector3.new(-50, 3, 0),
-	Vector3.new(50, 3, 0),
-	Vector3.new(20, 3, 22),   -- Cafe entrance
-	Vector3.new(-20, 3, 22),  -- Pharmacy entrance
-	Vector3.new(0, 3, 35),    -- Park fountain
-	Vector3.new(0, 3, 42),     -- Park south
-	Vector3.new(-12, 3, 30),  -- Park west
-	Vector3.new(12, 3, 30),    -- Park east
-}
+-- A set makes removal constant-time and is also used to keep spawn positions apart.
+local activeNPCs = {}
 
-local function getRandomWaypoint(exclude)
-	local wp
-	repeat
-		wp = WAYPOINTS[math.random(1, #WAYPOINTS)]
-	until wp ~= exclude or #WAYPOINTS <= 1
-	return wp
+local function getStreetParts()
+	local points = {}
+	for _, tagged in CollectionService:GetTagged("NPCStreet") do
+		if tagged:IsA("BasePart") then table.insert(points, tagged) end
+	end
+	if #points == 0 then
+		for _, part in workspace:GetDescendants() do
+			if part:IsA("BasePart") and part.Anchored and part.CanCollide then
+				local name = part.Name:lower()
+				local streetName = name:find("road", 1, true) or name:find("street", 1, true)
+					or name:find("sidewalk", 1, true) or name:find("pavement", 1, true)
+					or name:find("asphalt", 1, true)
+				if streetName and part.CFrame.UpVector.Y > 0.75 and math.min(part.Size.X, part.Size.Z) >= 4 then
+					table.insert(points, part)
+				end
+			end
+		end
+	end
+	return points
+end
+
+local function getNavigationPoints()
+	local points = getStreetParts()
+	for _, tagged in CollectionService:GetTagged("NPCWaypoint") do
+		if tagged:IsA("BasePart") then table.insert(points, tagged) end
+	end
+	return points
+end
+
+local function getRandomDestination(exclude, origin)
+	local points = getNavigationPoints()
+	if #points == 0 then return nil end
+	local bestSurface = nil
+	local bestPosition = nil
+	local bestDistance = -1
+	-- Sample several places and prefer the furthest reachable-looking target.
+	-- This makes civilians traverse the settlement instead of orbiting one block.
+	for _ = 1, math.min(16, math.max(6, #points * 2)) do
+		local surface = points[math.random(1, #points)]
+		if surface ~= exclude or #points <= 1 then
+			local halfX = math.max(0, surface.Size.X * 0.42)
+			local halfZ = math.max(0, surface.Size.Z * 0.42)
+			local offset = Vector3.new((math.random() * 2 - 1) * halfX, surface.Size.Y * 0.5 + 2.5, (math.random() * 2 - 1) * halfZ)
+			local candidate = surface.CFrame:PointToWorldSpace(offset)
+			local distance = (candidate - origin).Magnitude
+			if distance > bestDistance then
+				bestSurface, bestPosition, bestDistance = surface, candidate, distance
+			end
+		end
+	end
+	return bestSurface, bestPosition
+end
+
+local function isAwayFromReservedSpawns(candidate)
+	for _, tagged in CollectionService:GetTagged("RoundSpawn") do
+		if tagged:IsA("BasePart") and (tagged.Position - candidate).Magnitude < 35 then return false end
+	end
+	for _, descendant in workspace:GetDescendants() do
+		if descendant:IsA("SpawnLocation") and (descendant.Position - candidate).Magnitude < 35 then return false end
+	end
+	return true
+end
+
+local function spawnPositionFor(part)
+	for _ = 1, 50 do
+		local halfX = math.max(0, part.Size.X * 0.42)
+		local halfZ = math.max(0, part.Size.Z * 0.42)
+		local offset = Vector3.new((math.random() * 2 - 1) * halfX, part.Size.Y * 0.5 + 3, (math.random() * 2 - 1) * halfZ)
+		local candidate = part.CFrame:PointToWorldSpace(offset)
+		local farEnough = isAwayFromReservedSpawns(candidate)
+		for _, player in Players:GetPlayers() do
+			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			if root and (root.Position - candidate).Magnitude < 30 then
+				farEnough = false
+				break
+			end
+		end
+		if farEnough then
+			for npc in activeNPCs do
+				local root = npc:FindFirstChild("HumanoidRootPart")
+				if root and (root.Position - candidate).Magnitude < 10 then
+					farEnough = false
+					break
+				end
+			end
+		end
+		if farEnough then return candidate end
+	end
+	return nil
 end
 
 local function applyRandomAppearance(model)
@@ -68,11 +130,8 @@ local function applyRandomAppearance(model)
 	bodyColors.RightLegColor3 = pantsColor
 end
 
--- A set makes removal constant-time and avoids scanning the whole NPC list on death.
-local activeNPCs = {}
-
-local function spawnNPC(spawnPosition, npcName)
-	local hd = NPCProfiles.createRandomDescription()
+local function spawnNPC(spawnPosition)
+	local hd, presentation = NPCProfiles.createCivilianProfile()
 
 	local success, model = pcall(function()
 		return Players:CreateHumanoidModelFromDescription(hd, Enum.HumanoidRigType.R15)
@@ -83,18 +142,24 @@ local function spawnNPC(spawnPosition, npcName)
 		return nil
 	end
 
-	model.Name = npcName or ("NPC_" .. math.random(1000, 9999))
+	model.Name = "Civilian_" .. math.random(1000, 9999)
 	model:SetAttribute("IsCivilian", true)
+	model:SetAttribute("Presentation", presentation)
 	model:SetAttribute("WitnessStatement", NPCProfiles.randomFrom(NPCProfiles.WitnessResponses))
 	model:PivotTo(CFrame.new(spawnPosition))
 	applyRandomAppearance(model)
 	model.Parent = npcFolder
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			descendant:SetNetworkOwner(nil)
+		end
+	end
 	local interactionPart = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChildWhichIsA("BasePart")
 	if interactionPart then
 		local prompt = Instance.new("ProximityPrompt")
 		prompt.Name = "CivilianInteraction"
 		prompt.ActionText = "Interact"
-		prompt.ObjectText = model.Name
+		prompt.ObjectText = ""
 		prompt.HoldDuration = 1
 		prompt.MaxActivationDistance = 10
 		prompt.Parent = interactionPart
@@ -109,7 +174,7 @@ local function spawnNPC(spawnPosition, npcName)
 
 	humanoid.WalkSpeed = 8 + math.random(0, 4)
 	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
-	humanoid.DisplayName = model.Name
+	humanoid.DisplayName = ""
 
 	local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator", humanoid)
 	local walkAnimation = Instance.new("Animation")
@@ -129,16 +194,21 @@ local function spawnNPC(spawnPosition, npcName)
 	activeNPCs[model] = true
 
 	-- Start walking behavior
-	local currentTarget = nil
+	local currentSurface = nil
 
 	task.spawn(function()
 		while model.Parent and humanoid.Health > 0 do
-			currentTarget = getRandomWaypoint(currentTarget)
+			local targetPosition
+			currentSurface, targetPosition = getRandomDestination(currentSurface, model:GetPivot().Position)
+			if not targetPosition then
+				task.wait(5)
+				continue
+			end
 
 			local path = PathfindingService:CreatePath(PATH_PARAMETERS)
 
 			local pathSuccess = pcall(function()
-				path:ComputeAsync(model:GetPivot().Position, currentTarget)
+				path:ComputeAsync(model:GetPivot().Position, targetPosition)
 			end)
 
 			if pathSuccess and path.Status == Enum.PathStatus.Success then
@@ -156,9 +226,9 @@ local function spawnNPC(spawnPosition, npcName)
 					if not reached then break end
 				end
 			else
-				-- Fallback: direct move
-				humanoid:MoveTo(currentTarget)
-				humanoid.MoveToFinished:Wait()
+				-- Never walk directly through geometry. Wait and choose another
+				-- mapped point when pathfinding cannot reach this destination.
+				task.wait(1)
 			end
 
 			if humanoid.Health <= 0 or not model.Parent then return end
@@ -175,15 +245,12 @@ local function spawnNPC(spawnPosition, npcName)
 
 		activeNPCs[model] = nil
 
-		local spawns = workspace:FindFirstChild("NPCSpawns")
-		if spawns then
-			local spawnParts = spawns:GetChildren()
-			if #spawnParts > 0 then
-				local spawnPart = spawnParts[math.random(1, #spawnParts)]
-				local name = NPCProfiles.randomFrom(NPCProfiles.Names)
-				local pos = spawnPart.Position + Vector3.new(math.random(-10, 10), 0, math.random(-10, 10))
+		local streets = getStreetParts()
+		if #streets > 0 then
+			local pos = spawnPositionFor(streets[math.random(1, #streets)])
+			if pos then
 				task.wait(1)
-				spawnNPC(pos, name)
+				spawnNPC(pos)
 			end
 		end
 	end)
@@ -193,23 +260,16 @@ end
 
 -- Initialize NPCs
 local function initializeNPCs()
-	local spawns = workspace:FindFirstChild("NPCSpawns")
-	if not spawns then
-		warn("NPCService: No NPCSpawns folder found!")
-		return
-	end
-
-	local spawnParts = spawns:GetChildren()
-	if #spawnParts == 0 then
-		warn("NPCService: No spawn points found!")
+	local streetParts = getStreetParts()
+	if #streetParts == 0 then
+		warn("NPCService: No street surfaces found. Tag road/sidewalk parts with NPCStreet.")
 		return
 	end
 
 	for i = 1, NPC_COUNT do
-		local spawnPart = spawnParts[math.random(1, #spawnParts)]
-		local name = NPCProfiles.randomFrom(NPCProfiles.Names)
-		local pos = spawnPart.Position + Vector3.new(math.random(-10, 10), 0, math.random(-10, 10))
-		spawnNPC(pos, name)
+		local spawnPart = streetParts[math.random(1, #streetParts)]
+		local pos = spawnPositionFor(spawnPart)
+		if pos then spawnNPC(pos) end
 		task.wait(0.3)
 	end
 
