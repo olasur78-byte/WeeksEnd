@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local PathfindingService = game:GetService("PathfindingService")
 local CollectionService = game:GetService("CollectionService")
+local TweenService = game:GetService("TweenService")
 local NPCProfiles = require(game.ReplicatedStorage.Modules.NPCProfiles)
 
 local NPC_COUNT = 25
@@ -9,6 +10,7 @@ local PATH_PARAMETERS = {
 	AgentRadius = 2,
 	AgentHeight = 5,
 	AgentCanJump = true,
+	WaypointSpacing = 5,
 }
 
 -- Create NPC folder
@@ -49,6 +51,26 @@ local function getNavigationPoints()
 		if tagged:IsA("BasePart") then table.insert(points, tagged) end
 	end
 	return points
+end
+
+local function getPointsOfInterest()
+	local results = {}
+	local seen = {}
+	for _, tagged in CollectionService:GetTagged("NPCPointOfInterest") do
+		local part = if tagged:IsA("BasePart") then tagged else tagged:FindFirstChildWhichIsA("BasePart", true)
+		if part and not seen[part] then seen[part], results[#results + 1] = true, part end
+	end
+	for _, descendant in workspace:GetDescendants() do
+		if descendant:IsA("ProximityPrompt") then
+			local activity = descendant:GetAttribute("MonsterActivity")
+				or (descendant.Parent and descendant.Parent:GetAttribute("MonsterActivity"))
+			local part = descendant.Parent
+			if activity and part and part:IsA("BasePart") and not seen[part] then
+				seen[part], results[#results + 1] = true, part
+			end
+		end
+	end
+	return results
 end
 
 local function getRandomDestination(exclude, origin)
@@ -130,6 +152,28 @@ local function applyRandomAppearance(model)
 	bodyColors.RightLegColor3 = pantsColor
 end
 
+local function nearestCivilian(model, radius)
+	local root = model:FindFirstChild("HumanoidRootPart")
+	if not root then return nil end
+	local nearest, nearestDistance = nil, radius
+	for other in activeNPCs do
+		if other ~= model then
+			local otherRoot = other:FindFirstChild("HumanoidRootPart")
+			if otherRoot then
+				local distance = (otherRoot.Position - root.Position).Magnitude
+				if distance < nearestDistance then
+					nearest, nearestDistance = otherRoot, distance
+				end
+			end
+		end
+	end
+	return nearest
+end
+
+local function changeSpeedSmoothly(humanoid, speed)
+	TweenService:Create(humanoid, TweenInfo.new(0.65, Enum.EasingStyle.Sine), { WalkSpeed = speed }):Play()
+end
+
 local function spawnNPC(spawnPosition)
 	local hd, presentation = NPCProfiles.createCivilianProfile()
 
@@ -193,17 +237,41 @@ local function spawnNPC(spawnPosition)
 
 	activeNPCs[model] = true
 
-	-- Start walking behavior
+	-- Civilians alternate between idling, roaming and visiting useful places.
 	local currentSurface = nil
+	local normalWalkSpeed = 7 + math.random() * 3
 
 	task.spawn(function()
 		while model.Parent and humanoid.Health > 0 do
+			local decision = math.random()
+			if decision < 0.2 then
+				humanoid:Move(Vector3.zero)
+				changeSpeedSmoothly(humanoid, 0)
+				task.wait(math.random(3, 10))
+				changeSpeedSmoothly(humanoid, normalWalkSpeed)
+				continue
+			end
+
 			local targetPosition
-			currentSurface, targetPosition = getRandomDestination(currentSurface, model:GetPivot().Position)
+			local visiting = false
+			if decision < 0.5 then
+				local places = getPointsOfInterest()
+				if #places > 0 then
+					local place = places[math.random(1, #places)]
+					targetPosition = place.Position + place.CFrame.LookVector * 4
+					visiting = true
+				end
+			end
+			if not targetPosition then
+				currentSurface, targetPosition = getRandomDestination(currentSurface, model:GetPivot().Position)
+			end
 			if not targetPosition then
 				task.wait(5)
 				continue
 			end
+
+			local running = math.random() < 0.14
+			changeSpeedSmoothly(humanoid, if running then math.random(15, 18) else normalWalkSpeed)
 
 			local path = PathfindingService:CreatePath(PATH_PARAMETERS)
 
@@ -213,8 +281,27 @@ local function spawnNPC(spawnPosition)
 
 			if pathSuccess and path.Status == Enum.PathStatus.Success then
 				local waypoints = path:GetWaypoints()
+				local blocked = false
+				local waypointIndex = 2
+				local blockedConnection = path.Blocked:Connect(function(blockedIndex)
+					if blockedIndex >= waypointIndex then blocked = true end
+				end)
 				for i = 2, #waypoints do
 					if humanoid.Health <= 0 or not model.Parent then return end
+					if blocked then break end
+					waypointIndex = i
+
+					local nearbyRoot = nearestCivilian(model, 4.5)
+					if nearbyRoot then
+						-- Briefly yield and step sideways instead of forming a pile.
+						changeSpeedSmoothly(humanoid, normalWalkSpeed * 0.55)
+						local root = model:FindFirstChild("HumanoidRootPart")
+						if root then
+							humanoid:MoveTo(root.Position + root.CFrame.RightVector * (math.random(0, 1) == 0 and -3 or 3))
+							task.wait(math.random(4, 10) / 10)
+						end
+						changeSpeedSmoothly(humanoid, if running then 16 else normalWalkSpeed)
+					end
 
 					local wp = waypoints[i]
 					if wp.Action == Enum.PathWaypointAction.Jump then
@@ -225,6 +312,7 @@ local function spawnNPC(spawnPosition)
 					local reached = humanoid.MoveToFinished:Wait()
 					if not reached then break end
 				end
+				blockedConnection:Disconnect()
 			else
 				-- Never walk directly through geometry. Wait and choose another
 				-- mapped point when pathfinding cannot reach this destination.
@@ -232,7 +320,9 @@ local function spawnNPC(spawnPosition)
 			end
 
 			if humanoid.Health <= 0 or not model.Parent then return end
-			task.wait(math.random(2, 8))
+			changeSpeedSmoothly(humanoid, 0)
+			task.wait(if visiting then math.random(5, 14) else math.random(2, 7))
+			changeSpeedSmoothly(humanoid, normalWalkSpeed)
 		end
 	end)
 

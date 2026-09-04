@@ -16,6 +16,7 @@ w obecnej mapie. Poniższa tabela jest również kontraktem dla nowych obiektów
 | `PoliceStationZone` | Folder/model komisariatu albo BasePart | Strefa zakazana porywaczowi i cywilom |
 | `NPCWaypoint` | BasePart na chodniku | Opcjonalny, bezpieczny cel spacerów NPC |
 | `NPCStreet` | BasePart ulicy lub chodnika | Powierzchnia losowego spawnu i spacerów NPC; zalecany tag dla pewnego wykrywania |
+| `NPCPointOfInterest` | BasePart przy wejściu do lokalu | Miejsce okresowo odwiedzane przez cywilnych NPC |
 
 Model domu powinien zawierać `KidnapSpawn` albo `BasementSpawn`. Jeśli nie ma
 tagów domów, system próbuje znaleźć modele zawierające `House` w nazwie.
