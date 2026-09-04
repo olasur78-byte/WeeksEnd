@@ -1,0 +1,43 @@
+{
+  "name": "Weeks End",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Modules": {
+        "$path": "src/Shared/Modules"
+      },
+      "Shared": {
+        "$className": "Folder",
+        "Hello": {
+          "$path": "src/Shared/Hello.luau"
+        }
+      },
+      "HollowMimicAnimator": {
+        "$path": "src/ReplicatedStorage/HollowMimicAnimator.client.luau"
+      },
+      "$ignoreUnknownInstances": false
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "$path": "src/Server",
+      "$ignoreUnknownInstances": false
+    },
+    "ServerStorage": {
+      "$className": "ServerStorage",
+      "MonsterRigs": {
+        "$path": "src/ServerStorage/MonsterRigs",
+        "$ignoreUnknownInstances": false
+      },
+      "$ignoreUnknownInstances": false
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "$path": "src/Client",
+        "$ignoreUnknownInstances": false
+      }
+    }
+  }
+}

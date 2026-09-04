@@ -1,0 +1,4 @@
+*.generated.rbxl
+*.generated.rbxlx
+*.generated.json
+rbxlx-to-rojo.log

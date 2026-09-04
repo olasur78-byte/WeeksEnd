@@ -1,0 +1,180 @@
+{
+  "count": 31,
+  "scripts": [
+    {
+      "className": "LocalScript",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/StarterPlayer/StarterPlayerScripts/CityUIHandler.client.luau",
+      "instancePath": "StarterPlayer.StarterPlayerScripts.CityUIHandler"
+    },
+    {
+      "className": "LocalScript",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/StarterPlayer/StarterPlayerScripts/Client.client.luau",
+      "instancePath": "StarterPlayer.StarterPlayerScripts.Client"
+    },
+    {
+      "className": "LocalScript",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/StarterPlayer/StarterPlayerScripts/CaseFileUI.client.luau",
+      "instancePath": "StarterPlayer.StarterPlayerScripts.CaseFileUI"
+    },
+    {
+      "className": "LocalScript",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/StarterPlayer/StarterPlayerScripts/ProximityChatUI.client.luau",
+      "instancePath": "StarterPlayer.StarterPlayerScripts.ProximityChatUI"
+    },
+    {
+      "className": "LocalScript",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/StarterPlayer/StarterPlayerScripts/DetectiveBoardUI.client.luau",
+      "instancePath": "StarterPlayer.StarterPlayerScripts.DetectiveBoardUI"
+    },
+    {
+      "className": "LocalScript",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/StarterPlayer/StarterPlayerScripts/RoleDisplay.client.luau",
+      "instancePath": "StarterPlayer.StarterPlayerScripts.RoleDisplay"
+    },
+    {
+      "className": "LocalScript",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/StarterPlayer/StarterPlayerScripts/MonsterToggle.client.luau",
+      "instancePath": "StarterPlayer.StarterPlayerScripts.MonsterToggle"
+    },
+    {
+      "className": "ModuleScript",
+      "file": ".\\friend-weeks-end\\raw-scripts/ReplicatedStorage/Modules/NPCProfiles.luau",
+      "instancePath": "ReplicatedStorage.Modules.NPCProfiles"
+    },
+    {
+      "className": "ModuleScript",
+      "file": ".\\friend-weeks-end\\raw-scripts/ReplicatedStorage/Modules/RoleConfig.luau",
+      "instancePath": "ReplicatedStorage.Modules.RoleConfig"
+    },
+    {
+      "className": "ModuleScript",
+      "file": ".\\friend-weeks-end\\raw-scripts/ReplicatedStorage/Modules/EvidenceDefinitions.luau",
+      "instancePath": "ReplicatedStorage.Modules.EvidenceDefinitions"
+    },
+    {
+      "className": "LocalScript",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/ReplicatedStorage/HollowMimicAnimator.client.luau",
+      "instancePath": "ReplicatedStorage.HollowMimicAnimator"
+    },
+    {
+      "className": "ModuleScript",
+      "file": ".\\friend-weeks-end\\raw-scripts/ReplicatedStorage/Shared/Hello.luau",
+      "instancePath": "ReplicatedStorage.Shared.Hello"
+    },
+    {
+      "className": "Script",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerScriptService/RoundService.server.luau",
+      "instancePath": "ServerScriptService.RoundService"
+    },
+    {
+      "className": "Script",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerScriptService/RoleService.server.luau",
+      "instancePath": "ServerScriptService.RoleService"
+    },
+    {
+      "className": "Script",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerScriptService/NPCService.server.luau",
+      "instancePath": "ServerScriptService.NPCService"
+    },
+    {
+      "className": "Script",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerScriptService/InvestigationService.server.luau",
+      "instancePath": "ServerScriptService.InvestigationService"
+    },
+    {
+      "className": "Script",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerScriptService/EvidenceService.server.luau",
+      "instancePath": "ServerScriptService.EvidenceService"
+    },
+    {
+      "className": "Script",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerScriptService/ProximityChatService.server.luau",
+      "instancePath": "ServerScriptService.ProximityChatService"
+    },
+    {
+      "className": "Script",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerScriptService/MonsterTransformService.server.luau",
+      "instancePath": "ServerScriptService.MonsterTransformService"
+    },
+    {
+      "className": "ModuleScript",
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerScriptService/RoundState.luau",
+      "instancePath": "ServerScriptService.RoundState"
+    },
+    {
+      "className": "Script",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerScriptService/ConvenienceStoreService.server.luau",
+      "instancePath": "ServerScriptService.ConvenienceStoreService"
+    },
+    {
+      "className": "Script",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerScriptService/PoliceStationService.server.luau",
+      "instancePath": "ServerScriptService.PoliceStationService"
+    },
+    {
+      "className": "Script",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerScriptService/PlayerAppearance.server.luau",
+      "instancePath": "ServerScriptService.PlayerAppearance"
+    },
+    {
+      "className": "Script",
+      "disabled": false,
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerScriptService/Server.server.luau",
+      "instancePath": "ServerScriptService.Server"
+    },
+    {
+      "className": "ModuleScript",
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerStorage/MonsterRigs/AntlerStalker.luau",
+      "instancePath": "ServerStorage.MonsterRigs.AntlerStalker"
+    },
+    {
+      "className": "ModuleScript",
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerStorage/MonsterRigs/BogWalker.luau",
+      "instancePath": "ServerStorage.MonsterRigs.BogWalker"
+    },
+    {
+      "className": "ModuleScript",
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerStorage/MonsterRigs/ClockworkWarden.luau",
+      "instancePath": "ServerStorage.MonsterRigs.ClockworkWarden"
+    },
+    {
+      "className": "ModuleScript",
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerStorage/MonsterRigs/HollowMimic.luau",
+      "instancePath": "ServerStorage.MonsterRigs.HollowMimic"
+    },
+    {
+      "className": "ModuleScript",
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerStorage/MonsterRigs/NeonWisp.luau",
+      "instancePath": "ServerStorage.MonsterRigs.NeonWisp"
+    },
+    {
+      "className": "ModuleScript",
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerStorage/MonsterRigs/NightMoth.luau",
+      "instancePath": "ServerStorage.MonsterRigs.NightMoth"
+    },
+    {
+      "className": "ModuleScript",
+      "file": ".\\friend-weeks-end\\raw-scripts/ServerStorage/MonsterRigs/RigBuilder.luau",
+      "instancePath": "ServerStorage.MonsterRigs.RigBuilder"
+    }
+  ],
+  "source": ".\\friend-weeks-end\\Weeks End.rbxl"
+}
